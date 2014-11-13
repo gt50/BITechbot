@@ -1,6 +1,34 @@
-def oauth_req(url, key, secret, http_method="GET", post_body=None, http_headers=None):
-    consumer = oauth.Consumer(key=CONSUMER_KEY, secret=CONSUMER_SECRET)
-    token = oauth.Token(key=key, secret=secret)
-    client = oauth.Client(consumer, token)
-    resp, content = client.request( url, method=http_method, body=post_body, headers=http_headers, force_auth_header=True )
-    return content home_timeline = oauth_req( 'https://api.twitter.com/1.1/statuses/home_timeline.json', 'abcdefg', 'hijklmnop' )
+#!/usr/bin/env python
+
+import yaml
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
+
+
+with open('config.yaml', 'r') as f:
+    config = yaml.load(f)
+
+consumer_key = config["consumer_key"]
+consumer_secret = config["consumer_secret"]
+access_token = config["access_token"]
+access_token_secret = config["access_token_secret"]
+
+class StdOutListener(StreamListener):
+    """ A listener handles tweets are the received from the stream.
+    This is a basic listener that just prints received tweets to stdout.
+    """
+    def on_data(self, data):
+        print data
+        return True
+
+    def on_error(self, status):
+        print status
+
+if __name__ == '__main__':
+    l = StdOutListener()
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+
+    stream = Stream(auth, l)
+    stream.filter(track=['basketball'])
